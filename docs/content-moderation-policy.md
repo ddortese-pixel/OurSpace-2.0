@@ -1,33 +1,26 @@
 # OurSpace 2.0 — Content Moderation Policy
-
-**Effective Date:** April 11, 2026
-
-## Our Approach
-OurSpace 2.0 is committed to maintaining a safe, respectful community. We use a combination of user reporting and manual review.
+**Effective: April 11, 2026**
 
 ## Prohibited Content
-- Sexual exploitation or abuse (especially minors — zero tolerance, reported to NCMEC)
-- Hate speech targeting race, gender, religion, sexuality, or disability
-- Credible threats of violence
-- Harassment or targeted bullying
-- Spam and coordinated inauthentic behavior
-- Mislabeled AI-generated content
+- Illegal content of any kind
+- Child sexual abuse material (CSAM) — zero tolerance, reported to NCMEC
+- Hate speech targeting protected characteristics
+- Threats of violence or self-harm
+- Non-consensual intimate imagery
+- Spam, phishing, or malware
+- Impersonation of real individuals or entities
+- AI content misrepresented as human-created
 
-## Reporting Process
-1. Tap the "..." menu on any post, profile, or message
-2. Select "Report"
-3. Choose a reason
-4. Our team reviews within 24–48 hours
+## Enforcement
+- User reports reviewed within 24 hours
+- Violations result in content removal and/or account suspension
+- Severe violations (CSAM, threats) result in immediate permanent ban and law enforcement referral
+- Appeals: moderation@ourspace.app
 
-## Enforcement Actions
-- Content removal
-- Warning issued to user
-- Temporary account suspension (1–30 days)
-- Permanent ban
-- Law enforcement referral (for illegal content)
+## AI Content Policy
+- All AI-generated content MUST be labeled with the 🤖 AI badge
+- Failure to label = violation, content removal
+- Human-Only Filter excludes labeled AI content
 
-## Appeals
-Banned users may appeal by emailing: appeals@ourspace.app
-
-## Child Safety
-We have zero tolerance for CSAM. All reports are immediately escalated to NCMEC and law enforcement.
+## Reporting
+Use the 🚩 Report button on any post, profile, or message. Reports are confidential.
