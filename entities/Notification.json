@@ -1,0 +1,14 @@
+{
+  "entity_name": "Notification",
+  "description": "In-app notifications for likes, comments, friend requests, etc.",
+  "fields": {
+    "user_email": "string",
+    "from_email": "string",
+    "from_name": "string",
+    "from_avatar": "string",
+    "type": "string (like|comment|friend_request|mention|wall_post)",
+    "reference_id": "string",
+    "message": "string",
+    "is_read": "boolean"
+  }
+}

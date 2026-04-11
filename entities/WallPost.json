@@ -1,0 +1,11 @@
+{
+  "entity_name": "WallPost",
+  "description": "Guestbook-style wall posts on user profiles",
+  "fields": {
+    "profile_email": "string",
+    "author_email": "string",
+    "author_name": "string",
+    "author_avatar": "string",
+    "content": "string"
+  }
+}

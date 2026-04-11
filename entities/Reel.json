@@ -1,0 +1,21 @@
+{
+  "entity_name": "Reel",
+  "description": "Short-form vertical video content with audio transcripts for search",
+  "fields": {
+    "author_email": "string",
+    "author_name": "string",
+    "author_avatar": "string",
+    "video_url": "string",
+    "thumbnail_url": "string",
+    "caption": "string",
+    "audio_transcript": "string",
+    "likes_count": "number",
+    "liked_by": "array",
+    "comments_count": "number",
+    "views": "number",
+    "is_ai_generated": "boolean",
+    "is_human_verified": "boolean",
+    "series_id": "string",
+    "chapter_number": "number"
+  }
+}

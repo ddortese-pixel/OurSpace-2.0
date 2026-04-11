@@ -1,0 +1,24 @@
+{
+  "entity_name": "Story",
+  "description": "24-hour ephemeral stories with media, polls, and stickers",
+  "fields": {
+    "author_email": "string",
+    "author_name": "string",
+    "author_avatar": "string",
+    "media_url": "string",
+    "media_type": "string (image|video)",
+    "caption": "string",
+    "filter": "string",
+    "text_overlay": "string",
+    "text_color": "string",
+    "sticker_emojis": "array",
+    "tagged_users": "array",
+    "music_title": "string",
+    "views": "number",
+    "expires_at": "datetime",
+    "poll_question": "string",
+    "poll_options": "array",
+    "poll_votes": "object",
+    "this_or_that": "boolean"
+  }
+}

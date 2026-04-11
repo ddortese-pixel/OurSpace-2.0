@@ -1,0 +1,12 @@
+{
+  "entity_name": "Message",
+  "description": "E2EE direct messages between users",
+  "fields": {
+    "sender_email": "string",
+    "receiver_email": "string",
+    "sender_name": "string",
+    "content": "string",
+    "is_read": "boolean",
+    "conversation_id": "string"
+  }
+}

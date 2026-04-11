@@ -1,0 +1,28 @@
+{
+  "entity_name": "Profile",
+  "description": "User profile with customization options, themes, and social settings",
+  "fields": {
+    "user_email": "string",
+    "display_name": "string",
+    "avatar_url": "string",
+    "cover_photo": "string",
+    "headline": "string",
+    "about_me": "string",
+    "interests": "array",
+    "hobbies": "array",
+    "music_embed": "string",
+    "background_gradient": "string",
+    "theme_color": "string",
+    "font_choice": "string",
+    "custom_css": "string",
+    "custom_html": "string",
+    "top8_friends": "array",
+    "mood": "string",
+    "song_playing": "string",
+    "profile_views": "number",
+    "is_online": "boolean",
+    "privacy_level": "string (public|friends|private)",
+    "social_links": "object",
+    "widgets": "array"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "entity_name": "Friend",
+  "description": "Friend connections and requests between users",
+  "fields": {
+    "requester_email": "string",
+    "receiver_email": "string",
+    "status": "string (pending|accepted|blocked)",
+    "requester_name": "string",
+    "receiver_name": "string",
+    "requester_avatar": "string",
+    "receiver_avatar": "string"
+  }
+}
