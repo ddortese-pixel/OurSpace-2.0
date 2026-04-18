@@ -31,28 +31,23 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Scaffold fresh React Native project
+      - name: Scaffold React Native 0.75.4 project
         run: |
-          # Scaffold a vanilla RN 0.75.4 project named OurSpace
-          npx react-native@0.75.4 init OurSpace --version 0.75.4 --skip-git-init true --npm 2>&1 | tail -20
-          echo "Scaffold complete"
-          ls OurSpace/
+          npx @react-native-community/cli@15 init OurSpace --version 0.75.4 --skip-install --skip-git-init 2>&1 | tail -30
+          echo "--- scaffold result ---"
+          ls OurSpace/ || echo "ERROR: OurSpace dir missing"
 
-      - name: Overlay our source files
+      - name: Overlay our source
         run: |
-          # Copy our rn/ source files over the scaffold
-          cp rn/index.js         OurSpace/index.js
-          cp rn/App.js           OurSpace/App.js
-          cp rn/package.json     OurSpace/package.json
-
-          # Copy src/ tree
+          cp rn/index.js     OurSpace/index.js
+          cp rn/App.js       OurSpace/App.js
+          cp rn/package.json OurSpace/package.json
           mkdir -p OurSpace/src
           cp -r rn/src/. OurSpace/src/
-
-          echo "Source overlay complete"
+          echo "Overlay complete:"
           ls OurSpace/src/
 
-      - name: Install JS dependencies (in scaffolded project)
+      - name: Install JS dependencies
         working-directory: OurSpace
         run: npm install --legacy-peer-deps
 
