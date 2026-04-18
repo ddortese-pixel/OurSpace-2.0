@@ -1,0 +1,81 @@
+name: Build OurSpace 2.0 APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    name: Build Android Debug APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Install RN CLI
+        run: npm install -g react-native@0.75.4 @react-native-community/cli
+
+      - name: Scaffold fresh RN project
+        working-directory: /tmp
+        run: npx @react-native-community/cli@latest init OurSpace --version 0.75.4 --skip-install --skip-git-init
+
+      - name: Copy our source over scaffold
+        run: |
+          cp -r $GITHUB_WORKSPACE/rn/src /tmp/OurSpace/
+          cp $GITHUB_WORKSPACE/rn/App.js /tmp/OurSpace/App.js
+          cp $GITHUB_WORKSPACE/rn/index.js /tmp/OurSpace/index.js
+
+      - name: Install dependencies
+        working-directory: /tmp/OurSpace
+        run: |
+          npm install
+          npm install --save @react-native-async-storage/async-storage @react-native-community/netinfo @notifee/react-native react-native-callkeep
+
+      - name: Patch AndroidManifest
+        run: |
+          M="/tmp/OurSpace/android/app/src/main/AndroidManifest.xml"
+          sed -i 's|</manifest>|    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL"/>
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.MANAGE_OWN_CALLS"/>
+</manifest>|' "$M"
+          sed -i 's|</application>|    <service android:name="app.notifee.core.ForegroundService" android:foregroundServiceType="phoneCall" android:exported="false"/>
+</application>|' "$M"
+
+      - name: Make gradlew executable
+        working-directory: /tmp/OurSpace/android
+        run: chmod +x gradlew
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-v1
+
+      - name: Build Debug APK
+        working-directory: /tmp/OurSpace/android
+        run: ./gradlew assembleDebug --no-daemon
+        env:
+          JAVA_OPTS: "-Xmx4g"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ourspace-2.0-debug-apk
+          path: /tmp/OurSpace/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
