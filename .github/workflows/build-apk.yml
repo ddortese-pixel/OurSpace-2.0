@@ -2,69 +2,63 @@ name: Build OurSpace 2.0 APK
 
 on:
   workflow_dispatch:
-    inputs:
-      build_type:
-        description: 'Build type'
-        required: false
-        default: 'debug'
+  push:
+    branches: [main]
+    paths:
+      - 'rn/**'
 
 jobs:
-  build-apk:
-    name: Build Android APK
+  build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Node 18
+      - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
           cache-dependency-path: rn/package.json
 
-      - name: Set up Java 17
+      - name: Install JS Dependencies
+        working-directory: rn
+        run: npm install --legacy-peer-deps
+
+      - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
+          distribution: 'zulu'
           java-version: '17'
-          distribution: 'temurin'
 
-      - name: Set up Android SDK
+      - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install JS deps
-        working-directory: rn
-        run: npm install
+      - name: Make gradlew executable
+        working-directory: rn/android
+        run: chmod +x gradlew
 
-      - name: Cache Gradle
+      - name: Cache Gradle packages
         uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('rn/android/**/*.gradle*') }}
-          restore-keys: ${{ runner.os }}-gradle-
-
-      - name: Chmod gradlew
-        working-directory: rn/android
-        run: chmod +x gradlew
+          key: gradle-${{ hashFiles('rn/android/**/*.gradle*', 'rn/android/gradle-wrapper.properties') }}
+          restore-keys: gradle-
 
       - name: Build Debug APK
         working-directory: rn/android
-        run: ./gradlew assembleDebug --no-daemon
+        run: ./gradlew assembleDebug --stacktrace --no-daemon
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
 
-      - name: Upload APK
+      - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: ourspace-2.0-debug-apk
+          name: OurSpace2.0-Debug-APK
           path: rn/android/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 14
-
-      - name: Print build summary
-        run: |
-          APK="rn/android/app/build/outputs/apk/debug/app-debug.apk"
-          echo "Build complete"
-          if [ -f "$APK" ]; then
-            echo "APK size: $(du -sh $APK | cut -f1)"
-          fi
+          retention-days: 7
+          if-no-files-found: error
