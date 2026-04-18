@@ -1,64 +1,60 @@
-# OurSpace 2.0 — Android APK Build
 name: Build OurSpace 2.0 APK
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'rn/**'
+      - '.github/workflows/build-apk.yml'
 
 jobs:
-  build-apk:
-    name: Build Android Debug APK
+  build:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
 
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Node 18
+      - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
-      - name: Set up Java 17
+      - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
+          distribution: 'zulu'
           java-version: '17'
-          distribution: 'temurin'
 
-      - name: Install RN CLI
-        run: npm install -g react-native@0.75.4 @react-native-community/cli
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
-      - name: Scaffold fresh RN project
-        working-directory: /tmp
-        run: npx @react-native-community/cli@latest init OurSpace --version 0.75.4 --skip-install --skip-git-init
-
-      - name: Copy our source over scaffold
+      - name: Scaffold fresh React Native project
         run: |
-          cp -r $GITHUB_WORKSPACE/rn/src /tmp/OurSpace/
-          cp $GITHUB_WORKSPACE/rn/App.js /tmp/OurSpace/App.js
-          cp $GITHUB_WORKSPACE/rn/index.js /tmp/OurSpace/index.js
+          # Scaffold a vanilla RN 0.75.4 project named OurSpace
+          npx react-native@0.75.4 init OurSpace --version 0.75.4 --skip-git-init true --npm 2>&1 | tail -20
+          echo "Scaffold complete"
+          ls OurSpace/
 
-      - name: Install dependencies
-        working-directory: /tmp/OurSpace
+      - name: Overlay our source files
         run: |
-          npm install
-          npm install --save @react-native-async-storage/async-storage @react-native-community/netinfo @notifee/react-native react-native-callkeep
+          # Copy our rn/ source files over the scaffold
+          cp rn/index.js         OurSpace/index.js
+          cp rn/App.js           OurSpace/App.js
+          cp rn/package.json     OurSpace/package.json
 
-      - name: Patch AndroidManifest
-        run: |
-          M="/tmp/OurSpace/android/app/src/main/AndroidManifest.xml"
-          sed -i 's|</manifest>|    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL"/>
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
-    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
-    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
-    <uses-permission android:name="android.permission.MANAGE_OWN_CALLS"/>
-</manifest>|' "$M"
-          sed -i 's|</application>|    <service android:name="app.notifee.core.ForegroundService" android:foregroundServiceType="phoneCall" android:exported="false"/>
-</application>|' "$M"
+          # Copy src/ tree
+          mkdir -p OurSpace/src
+          cp -r rn/src/. OurSpace/src/
 
-      - name: Make gradlew executable
-        working-directory: /tmp/OurSpace/android
-        run: chmod +x gradlew
+          echo "Source overlay complete"
+          ls OurSpace/src/
+
+      - name: Install JS dependencies (in scaffolded project)
+        working-directory: OurSpace
+        run: npm install --legacy-peer-deps
 
       - name: Cache Gradle
         uses: actions/cache@v4
@@ -66,17 +62,21 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-v1
+          key: gradle-${{ hashFiles('OurSpace/android/**/*.gradle*') }}
+          restore-keys: gradle-
 
       - name: Build Debug APK
-        working-directory: /tmp/OurSpace/android
-        run: ./gradlew assembleDebug --no-daemon
+        working-directory: OurSpace/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace --no-daemon
         env:
-          JAVA_OPTS: "-Xmx4g"
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
 
-      - name: Upload APK
+      - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: ourspace-2.0-debug-apk
-          path: /tmp/OurSpace/android/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 14
+          name: OurSpace2.0-Debug-APK
+          path: OurSpace/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 7
+          if-no-files-found: error
