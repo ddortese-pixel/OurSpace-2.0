@@ -11,37 +11,26 @@
   "dependencies": {
     "react":        "18.3.1",
     "react-native": "0.75.4",
-
-    "_comment_core": "── Core utilities ──────────────────────────────────────",
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-native-community/netinfo":            "^11.3.1",
-
-    "_comment_calling": "── Calling & WebRTC ─────────────────────────────────",
     "@daily-co/daily-js":                         "^0.64.0",
-
-    "_comment_notifications": "── Notifications (no Firebase) ──────────────────",
     "@notifee/react-native":                      "^9.1.0",
-
-    "_comment_native_call": "── Native call UI (ConnectionService + CallKit) ────",
     "react-native-callkeep":                      "^4.3.11",
-
-    "_comment_firebase": "── Firebase (OPTIONAL — enables FCM killed-app wake) ──",
-    "_note": "Remove @react-native-firebase/* if you do not have a Firebase project.",
     "@react-native-firebase/app":                 "^20.5.0",
     "@react-native-firebase/messaging":           "^20.5.0"
   },
   "devDependencies": {
-    "@babel/core":           "^7.25.0",
-    "@babel/preset-env":     "^7.25.0",
-    "@babel/runtime":        "^7.25.0",
-    "@react-native/babel-preset": "^0.75.4",
+    "@babel/core":                 "^7.25.0",
+    "@babel/preset-env":           "^7.25.0",
+    "@babel/runtime":              "^7.25.0",
+    "@react-native/babel-preset":  "^0.75.4",
     "@react-native/eslint-config": "^0.75.4",
     "@react-native/metro-config":  "^0.75.4",
-    "@types/react":          "^18.3.1",
-    "babel-jest":            "^29.7.0",
-    "eslint":                "^8.57.0",
-    "jest":                  "^29.7.0",
-    "typescript":            "5.0.4"
+    "@types/react":                "^18.3.1",
+    "babel-jest":                  "^29.7.0",
+    "eslint":                      "^8.57.0",
+    "jest":                        "^29.7.0",
+    "typescript":                  "5.0.4"
   },
   "engines": {
     "node": ">=18"
