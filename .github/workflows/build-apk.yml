@@ -2,14 +2,10 @@ name: Build OurSpace 2.0 APK
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'rn/**'
-      - '.github/workflows/build-apk.yml'
 
 jobs:
-  build:
+  build-apk:
+    name: Build Android Debug APK
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -17,39 +13,54 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+      - name: Set up Node 18
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '18'
 
-      - name: Setup Java 17
+      - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
           java-version: '17'
+          distribution: 'temurin'
 
-      - name: Setup Android SDK
+      - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Scaffold React Native 0.75.4 project
+      - name: Create RN project using template (non-interactive)
         run: |
-          npx @react-native-community/cli@15 init OurSpace --version 0.75.4 --skip-install --skip-git-init 2>&1 | tail -30
-          echo "--- scaffold result ---"
-          ls OurSpace/ || echo "ERROR: OurSpace dir missing"
+          npx --yes react-native@0.75.4 init OurSpace             --template react-native-template-typescript             --directory /tmp/OurSpace             --skip-install             --version 0.75.4             --npm             --no-telemetry             2>&1 || true
+          # Verify android dir was created
+          if [ ! -d "/tmp/OurSpace/android" ]; then
+            echo "Scaffold failed, using yarn create approach..."
+            cd /tmp
+            npm_config_yes=true npx @react-native-community/cli@12 init OurSpace               --version 0.75.4               --skip-install               --directory /tmp/OurSpace2 2>&1 || true
+            # last resort: clone from official template
+            git clone --depth 1 https://github.com/facebook/react-native.git /tmp/rn-repo
+            cp -r /tmp/rn-repo/template /tmp/OurSpace
+            # rename the template app
+            find /tmp/OurSpace -type f \( -name "*.json" -o -name "*.xml" -o -name "*.java" -o -name "*.gradle" -o -name "*.swift" \)               -exec sed -i 's/HelloWorld/OurSpace/g; s/helloworld/ourspace/g' {} +
+          fi
+          echo "Android dir check:"
+          ls /tmp/OurSpace/android/ 2>/dev/null || echo "NOT FOUND"
 
-      - name: Overlay our source
+      - name: Overlay our JS source files
         run: |
-          cp rn/index.js     OurSpace/index.js
-          cp rn/App.js       OurSpace/App.js
-          cp rn/package.json OurSpace/package.json
-          mkdir -p OurSpace/src
-          cp -r rn/src/. OurSpace/src/
-          echo "Overlay complete:"
-          ls OurSpace/src/
+          cp -r $GITHUB_WORKSPACE/rn/src /tmp/OurSpace/
+          cp $GITHUB_WORKSPACE/rn/App.js /tmp/OurSpace/App.js
+          cp $GITHUB_WORKSPACE/rn/index.js /tmp/OurSpace/index.js
 
       - name: Install JS dependencies
-        working-directory: OurSpace
-        run: npm install --legacy-peer-deps
+        working-directory: /tmp/OurSpace
+        run: |
+          npm install
+          npm install --save             @react-native-async-storage/async-storage             @react-native-community/netinfo             @notifee/react-native             react-native-callkeep
+
+      - name: Add extra AndroidManifest permissions
+        run: |
+          M="/tmp/OurSpace/android/app/src/main/AndroidManifest.xml"
+          sed -i 's|</manifest>|    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>\n    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL"/>\n    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>\n    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>\n    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>\n    <uses-permission android:name="android.permission.MANAGE_OWN_CALLS"/>\n</manifest>|' "$M"
+          sed -i 's|</application>|    <service android:name="app.notifee.core.ForegroundService" android:foregroundServiceType="phoneCall" android:exported="false"/>\n</application>|' "$M"
 
       - name: Cache Gradle
         uses: actions/cache@v4
@@ -57,21 +68,24 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: gradle-${{ hashFiles('OurSpace/android/**/*.gradle*') }}
-          restore-keys: gradle-
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Make gradlew executable
+        working-directory: /tmp/OurSpace/android
+        run: chmod +x gradlew
 
       - name: Build Debug APK
-        working-directory: OurSpace/android
-        run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace --no-daemon
+        working-directory: /tmp/OurSpace/android
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
         env:
-          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          JAVA_OPTS: "-Xmx4g -XX:MaxMetaspaceSize=512m"
+          GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: OurSpace2.0-Debug-APK
-          path: OurSpace/android/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 7
-          if-no-files-found: error
+          name: ourspace-2.0-debug-apk
+          path: /tmp/OurSpace/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
